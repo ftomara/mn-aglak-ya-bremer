@@ -141,6 +141,10 @@ Application {
     skills_req[],
 }
 ```
+
+## High level architecture :
+<img width="1210" height="648" alt="Screenshot 2026-09-14 at 1 20 17 PM" src="https://github.com/user-attachments/assets/9538e1a2-16bd-436e-aa16-b48b2a8e03a2" />
+
 ----
 [Deep Dives](deep_dives.md)
 ---
