@@ -25,6 +25,7 @@
 - consistency >> availability : job states and open positions should be consistent for good ux to get current job openings realtime without any delays
 - scalability : system should be able to maintain a large number of users 50M DAU
 - low latency : get search results <300ms
+- security
 
 ## Data Model :
 
