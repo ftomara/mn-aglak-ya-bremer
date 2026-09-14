@@ -142,7 +142,7 @@ Application {
 }
 ```
 ----
-[Deep Dives](./deep_dives.md)
+[Deep Dives](deep_dives.md)
 ---
 ## Team Members :
 ### Fatma Omara
