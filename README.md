@@ -87,7 +87,7 @@ Robot
 
 ## API Design
 
-**`POST orders/place -> Partial<Order<Received>>`**
+**`POST orders/place -> Result<200ok<Partial<Order<Received>>>,Error>`**
 
 ```text
 {
@@ -97,11 +97,11 @@ Robot
 }
 ```
 
-**`GET /orders/order?page{}-> Order[]`**
+**`GET /orders/order?page{}-> Result<200ok<Order[]>,Error>`**
 
-**`GET /orders/ordrer?{id}-> Order<id>`**
+**`GET /orders/ordrer?{id}-> Result<200ok<Order<id>>>,Error>`**
 
-**`GET /orders/status/order?{id} -> Partial<Order<status>>`**
+**`GET /orders/status/order?{id} -> Result<200ok<Partial<Order<status>>>,Error>`**
 
 **`PUT /orders/update_status/order?{id} -> Partial<Order<status>>`**
 
@@ -111,9 +111,9 @@ Robot
 }
 ```
 
-**`GET /items/isavailable/item?{id} -> <True,False>`**
+**`GET /items/isavailable/item?{id} -> Result<200ok<True,False>,Error>`**
 
-**`PUT /items/reserve/item -> Item`**
+**`PUT /items/reserve/item -> Result<200ok<Item>,Error>`**
 ```text
 {
     - item_id
@@ -121,14 +121,14 @@ Robot
 }
 ```
 
-**`POST /robots/allocate -> <Robots[],Order>`**
+**`POST /robots/allocate -> Result<200ok<<Robots[],Order>>,Error>`**
 ```text
 {
     - order_id
 }
 ```
 
-**`GET /robots/status/robot?{id} -> Partial<Robot<status>>`**
+**`GET /robots/status/robot?{id} -> Result<200ok<Partial<Robot<status>>>,Error>`**
 
 **`Event-Listener ("low stock") -> item stock is low notify operator`**
 
