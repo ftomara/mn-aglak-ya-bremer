@@ -1,150 +1,168 @@
 # CodeRefine Qualification 2 - Carieeer
 
-## [Excalidraw file](carieersystemarch.excalidraw)
+## [Excalidraw file](amazieee.excalidraw)
 
 ## Functional Requirements :
 
-**Candidates:**
-
-- can create profile with skills, experience and other details
-- can search & view list of jobs
-- can get matched and apply to matching job
-- can view missing skills for a specific job
-- can view applied job state updates (Applied → Screened → Interview → Offer → Rejected)
-- can get notifications of matching jobs and applied jobs updates and other events 
-
-**Employers:**
-
-- can create profile with company information
-- can post open positions and create jobs (with all of job's details i.e. salary)
-- can search & view candidates 
-- can get notifications of matching candidates / applications
-- can get candidate job state updates (Applied → Screened → Interview → Offer → Rejected)
+- system should receive and validate orders (same order shouldn't get processed twice)
+-  system should check availability of order's items 
+- system should reserve order items to prevent overselling
+- system should allocate robots to pack order
+- system should get progress of robots handling the order continuously
+- system should move order to packing station after fully collecting the order
+- warehouse operators should view order status (Received → Confirmed →etc..)
+- system should notify operators about important events (low stock, a robot failure, a delayed      order, or a robot with a low battery)
+- customer should place and track (get notified) order status 
 
 ## nonFunctional Requirements :
-- consistency >> availability : job states and open positions should be consistent for good ux to get current job openings realtime without any delays
-- scalability : system should be able to maintain a large number of users 50M DAU
-- low latency : get search results <300ms
-- security
+
+- scalability to handle many orders
+- resilience to handle robot failures
+- consistency to prevent overselling items
+- idempocity (I dont remember the exact word but it is for handling order submitted twice or more)
 
 ## Data Model :
 
 ```text
-Candidate {
-    can_id(PK),
-    user_name,
-    email,
-    hashed_password,
-    skills[],
-    education,
-    portfolio_url,
-    experience,
-    applications[],
+Customer 
+{
+    - id
+    - name
+    - Order[]
+    - address
+    - email
+    - password
+    - payment_info
+
+}
+```
+``` text
+Operator
+{
+    - id
+    - name
+    - email
+    - password
+    - Item[]
+
+}
+```
+```text
+Order
+{
+    - id(PK)
+    - items[<item_id(fk) : quantity>]
+    - ordered_at:Time
+    - status <Received ,Confirmed , Picking , Collected , Packed , Ready for Shipping, or Cancelled / Failed>
+    - robot_fleet_status
+    - customer_id
+    - estimated_arrival_time
+
+}
+```
+
+
+```text
+Item
+{
+    - id(pk)
+    - stock_quantity
+    - price
+    - name
+    - is_available
+
 }
 ```
 
 ```text
-Employer {
-    emp_id(PK),
-    user_name,
-    email,
-    hashed_password,
-    company_info,
-    jobs_ids[],
-}
-```
-
-
-```text
-Job {
-    job_id(PK),
-    emp_id(FK),
-    status <Open, Closed>,
-    title,
-    desc,
-    salary,
-    skills_req[],
-    application_ids[](FK),
-}
-```
-
-```text
-Application {
-    app_id(PK),
-    emp_id(FK),
-    can_id(FK),
-    status <Applied, Screened, Interview, Offer, Rejected>,
-    cand_cv,
+Robot
+{
+    - id(pk)
+    - status <ASSIGNED,INPROGRESS,COMPLETED,FAILED>
+    - item_id(fk)
+    - location <x,y>
+    - battery level
 }
 ```
 
 ## API Design
 
-**`POST /create_profile/candidate`** → `Candidate`
+**`POST orders/place -> Partial<Order<Received>>`**
 
 ```text
 {
-    user_name,
-    email,
-    hashed_password,
-    skills[],
-    education,
-    portfolio_url,
-    experience,
+    - items[<item_id(fk) : quantity>]
+    - ordered_at:Time
+    - customer_id
 }
 ```
-**`POST /create_profile/employer`** → `Employer`
+
+**`GET /orders/order?page{}-> Order[]`**
+
+**`GET /orders/ordrer?{id}-> Order<id>`**
+
+**`GET /orders/status/order?{id} -> Partial<Order<status>>`**
+
+**`PUT /orders/update_status/order?{id} -> Partial<Order<status>>`**
 
 ```text
 {
-    user_name,
-    email,
-    hashed_password,
-    company_info,
+    - new_order_status
 }
 ```
-**`GET /search_jobs/job?skills=[]&payrange=[]&keywords=[]`** → `Job[]`
 
-**`GET /search_candidates/candidate?expertise=[]&experiencelevel={}&keywords=[]`** → `Candidate[]`
+**`GET /items/isavailable/item?{id} -> <True,False>`**
 
-**`GET /jobs/job?page={}`** → `Job[]`
-
-**`GET /candidates/candidate?page={}`** → `Candidate[]`
-
-**`GET /match/candidate_id`** → `Job[]`
-
-**`GET /match/job_id`** → `Candidate[]`
-
-**`GET /match/job_id/missingskills?cand_id={}`** → `missing_skills[]`
-
-**`POST /application/apply`** → `Application`
-
+**`PUT /items/reserve/item -> Item`**
 ```text
 {
-    app_id,
-    emp_id,
-    can_id,
-    status <Applied>,
-    cand_cv,
+    - item_id
+    - item_quantity
 }
 ```
-**`GET /application/status/job_id/cand_id`** → `status <Applied, Screened, Interview, Offer, Rejected>`
 
-**`POST /create_job`** → `Job`
+**`POST /robots/allocate -> <Robots[],Order>`**
+```text
+{
+    - order_id
+}
+```
+
+**`GET /robots/status/robot?{id} -> Partial<Robot<status>>`**
+
+**`Event-Listener ("low stock") -> item stock is low notify operator`**
 
 ```text
 {
-    emp_id,
-    status <Open>,
-    title,
-    desc,
-    salary,
-    skills_req[],
+    - item_id
+}
+```
+**`Event-Listener ("low battery robot") -> robot battery is low notify operator`**
+```text
+{
+    - robot_id
+}
+```
+
+**`Event-Listener ("failed robot") -> robot failed notify operator`**
+```text
+{
+    - robot_id,
+    - order_id<delayed by robot failure (<5s)>
+}
+```
+
+
+**`Event-Listener ("ORDER_STATUS") -> order status changed notify customer`**
+``` text
+{
+    - order_id,
+    - customer_id,
 }
 ```
 
 ## High level architecture :
-<img width="1210" height="648" alt="Screenshot 2026-09-14 at 1 20 17 PM" src="https://github.com/user-attachments/assets/9538e1a2-16bd-436e-aa16-b48b2a8e03a2" />
+<img width="1210" height="648" alt="v1_arch" src="v1_arch.png" />
 
 ----
 [Deep Dives](deep_dives.md)

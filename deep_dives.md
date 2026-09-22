@@ -1,39 +1,30 @@
 ## Deep Dives:
-  - First when we designing the system we choose the priority of the system
-    is to be consistent as it's important when a user come and apply for a job 
-    to have the last updated stauts , so candidates can see which jobs is still
-    accepting requests and which has been closed, so we can get good UX 
-    experience.
-  
-  - And how the system should handle more and more users?
-    the solution is the system has to be scalable to handle all the read and writes
-    efficiently and it will handle all these users by using a load balancer which tries 
-    to make our system more efficient. 
-  
-  - But what if the system or a service goes down?
-    here we comes to availability. since, the system has to handle millions of users
-    per day , it's expected that the services can go down, so here comes availability
-    so we can do this by making copies of our data on different nodes so even if 
-    the service goes down on a node, we can shift to the standby node without 
-    making the users that something wrong has happened.
-  
-  - But how to make our system fast as we serve millions every day?
-    the answer here is to make the system works with low latency, so
-    we made a cache which has the most popular jobs that people has
-    searched for, which make the process of searching more efficient so
-    we can get the search results <300ms.  
-  
-  - So how the candidate will know that he matched for a job?
-    After the candidate makes an account he will make a match
-    by using (match service) and then the match service goes to
-    (job service) to get jobs then match the jobs with condidate 
-    skills in (matching service) return list of matched jobs to the 
-    candidate.
-  
-  - When the Candidate search , how the request can be handled?
-    when the candidate search for jobs, we use pagination technique
-    so, it comes with 20 job per request.  
+- Designing system like this actually the first thing we
+  should think about is scalability as the system can scale
+  to handle more users, orders and robots and so on
 
-  
+- How the system shall solve problems like robot failure?
+  here the answer is resilience which help the system to be 
+  more effecient as even if the robot failed the customer's
+  order doesn't get affected and the order arrives to the 
+  customer in the estimated time. and we can achieve this
+  when the robot fails it will notify the system. then the 
+  system will search for the nearest available robot to take 
+  his place. if there is no robots so we will delay the order
+  and notify the customer that it will be delayed for a little
+  time.
 
-  
+- How the system can handle the oversalling problem?
+  here the role of consistency comes , so the last updated
+  version of the system shall be obvious to the customer immediately
+
+- How the system handle two orders can never claim the same last unit?
+  here we can use a queue which can enhance the process , so we can see
+  who the first one who ordered the last item and then we can assign it
+  to it so no one else can order it.
+
+- How the system handling that the customer order to be requested once?
+  the point here is handled by cache abd the timestamp the cache will have
+  the last order have been done by the customer and will be marked with the
+  customer & order id . so if it is the same order from the same customer in
+  time <300ms. then it shall be ordered once.
